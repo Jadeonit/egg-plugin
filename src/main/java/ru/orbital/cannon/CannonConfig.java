@@ -45,6 +45,13 @@ public final class CannonConfig {
     private double orbitalVelocity = -2.5;
     private int orbitalFuseExtra = 10;
 
+    private EntityType megaorbitalProjectile = EntityType.TNT;
+    private double megaorbitalHeight = 300.0;
+    private double megaorbitalJitter = 10.0;
+    private double megaorbitalRadius = 1000.0;
+    private double megaorbitalVelocity = -2.5;
+    private int megaorbitalFuseExtra = 10;
+
     private EntityType stabProjectile = EntityType.TNT;
     private double stabHeight = 300.0;
     private double stabJitter = 4.0;
@@ -53,6 +60,12 @@ public final class CannonConfig {
     private double stabDepth = 8.0;
     private double stabSpeed = 2.5;
     private float stabYield = 6.0f;
+
+    private EntityType witherProjectile = EntityType.WITHER_SKULL;
+    private double witherHeight = 80.0;
+    private double witherJitter = 10.0;
+    private double witherRadius = 6.0;
+    private double witherVelocity = -3.0;
 
     public void reload(FileConfiguration c) {
         this.defaultProjectile = parseType(c.getString("defaults.projectile", "TNT"));
@@ -105,6 +118,16 @@ public final class CannonConfig {
         this.orbitalVelocity = c.getDouble("modes.orbital.velocity", -2.5);
         this.orbitalFuseExtra = Math.max(0, c.getInt("modes.orbital.tnt-fuse-extra", 10));
 
+        this.megaorbitalProjectile = parseType(c.getString("modes.megaorbital.projectile", "TNT"));
+        if (this.megaorbitalProjectile == null) {
+            this.megaorbitalProjectile = EntityType.TNT;
+        }
+        this.megaorbitalHeight = c.getDouble("modes.megaorbital.height", 300.0);
+        this.megaorbitalJitter = Math.max(0.0, c.getDouble("modes.megaorbital.height-jitter", 10.0));
+        this.megaorbitalRadius = Math.max(0.0, c.getDouble("modes.megaorbital.radius", 1000.0));
+        this.megaorbitalVelocity = c.getDouble("modes.megaorbital.velocity", -2.5);
+        this.megaorbitalFuseExtra = Math.max(0, c.getInt("modes.megaorbital.tnt-fuse-extra", 10));
+
         this.stabProjectile = parseType(c.getString("modes.stab.projectile", "TNT"));
         if (this.stabProjectile == null) {
             this.stabProjectile = EntityType.TNT;
@@ -116,6 +139,15 @@ public final class CannonConfig {
         this.stabDepth = Math.max(0.0, c.getDouble("modes.stab.depth", 8.0));
         this.stabSpeed = Math.max(0.25, c.getDouble("modes.stab.speed", 2.5));
         this.stabYield = (float) Math.max(0.0, c.getDouble("modes.stab.yield", 6.0));
+
+        this.witherProjectile = parseType(c.getString("modes.wither.projectile", "WITHER_SKULL"));
+        if (this.witherProjectile == null) {
+            this.witherProjectile = EntityType.WITHER_SKULL;
+        }
+        this.witherHeight = c.getDouble("modes.wither.height", 80.0);
+        this.witherJitter = Math.max(0.0, c.getDouble("modes.wither.height-jitter", 10.0));
+        this.witherRadius = Math.max(0.0, c.getDouble("modes.wither.radius", 6.0));
+        this.witherVelocity = c.getDouble("modes.wither.velocity", -3.0);
     }
 
     public static EntityType parseType(String raw) {
@@ -217,7 +249,9 @@ public final class CannonConfig {
     public EntityType projectileFor(SpawnMode mode) {
         return switch (mode) {
             case ORBITAL -> orbitalProjectile;
+            case MEGAORBITAL -> megaorbitalProjectile;
             case STAB -> stabProjectile;
+            case WITHER -> witherProjectile;
             default -> defaultProjectile;
         };
     }
@@ -225,7 +259,9 @@ public final class CannonConfig {
     public double modeHeight(SpawnMode mode) {
         return switch (mode) {
             case ORBITAL -> orbitalHeight;
+            case MEGAORBITAL -> megaorbitalHeight;
             case STAB -> stabHeight;
+            case WITHER -> witherHeight;
             default -> height;
         };
     }
@@ -233,7 +269,9 @@ public final class CannonConfig {
     public double modeJitter(SpawnMode mode) {
         return switch (mode) {
             case ORBITAL -> orbitalJitter;
+            case MEGAORBITAL -> megaorbitalJitter;
             case STAB -> stabJitter;
+            case WITHER -> witherJitter;
             default -> heightJitter;
         };
     }
@@ -241,7 +279,9 @@ public final class CannonConfig {
     public double modeRadius(SpawnMode mode) {
         return switch (mode) {
             case ORBITAL -> orbitalRadius;
+            case MEGAORBITAL -> megaorbitalRadius;
             case STAB -> stabRadius;
+            case WITHER -> witherRadius;
             default -> radius;
         };
     }
@@ -249,7 +289,9 @@ public final class CannonConfig {
     public double modeVelocity(SpawnMode mode) {
         return switch (mode) {
             case ORBITAL -> orbitalVelocity;
+            case MEGAORBITAL -> megaorbitalVelocity;
             case STAB -> stabVelocity;
+            case WITHER -> witherVelocity;
             default -> velocity;
         };
     }
@@ -257,7 +299,9 @@ public final class CannonConfig {
     public int modeFuseExtra(SpawnMode mode) {
         return switch (mode) {
             case ORBITAL -> orbitalFuseExtra;
+            case MEGAORBITAL -> megaorbitalFuseExtra;
             case STAB -> 0;
+            case WITHER -> 0;
             default -> tntFuseExtra;
         };
     }

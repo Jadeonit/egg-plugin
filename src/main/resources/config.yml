@@ -27,6 +27,13 @@ modes:
     radius: 25
     velocity: -2.5
     tnt-fuse-extra: 10
+  megaorbital:
+    projectile: TNT
+    height: 300
+    height-jitter: 10
+    radius: 1000
+    velocity: -2.5
+    tnt-fuse-extra: 10
   stab:
     projectile: TNT
     height: 300
@@ -36,6 +43,12 @@ modes:
     depth: 8
     speed: 2.5
     yield: 6.0
+  wither:
+    projectile: WITHER_SKULL
+    height: 80
+    height-jitter: 10
+    radius: 6
+    velocity: -3.0
 
 mobs:
   slow-falling: true

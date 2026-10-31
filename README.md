@@ -15,13 +15,13 @@
 ## Команда
 
 ```
-/egg <снаряд|orbital|stab> <кол-во> <цель> <fire|rod>
+/egg <снаряд|orbital|megaorbital|stab|wither> <кол-во> <цель> <fire|rod>
 ```
 
 | Аргумент | Значения |
 |---|---|
 | `снаряд` | `tnt`, `egg`, `warden`, `zombie`, `creeper`, `falling_block`, ... |
-| `режим` | `orbital` — орбитальный залп; `stab` — скоростной удар вниз; можно совмещать с типом: `orbital:warden`, `stab:creeper` |
+| `режим` | `orbital` — орбитальный залп; `megaorbital` — мегаорбиталка (радиус 1000); `stab` — скоростной удар вниз; `wither` — стреляет головами визера; можно совмещать с типом: `orbital:warden`, `stab:creeper` |
 | `кол-во` | число или `unlimited` |
 | `цель` | ник игрока, `me` / `я` |
 | `активация` | `fire` / `запуск` / `команда` — залп сразу; `rod` / `удочка` — выдать уже настроенную удочку |
@@ -34,7 +34,9 @@
 /egg egg unlimited Alex удочка
 /egg creeper 50 me запуск
 /egg orbital 100 Jadeonit rod
+/egg megaorbital 100 Jadeonit fire
 /egg stab 100 Jadeonit fire
+/egg wither 100 Jadeonit rod
 /egg orbital:warden 50 Steve rod
 ```
 
@@ -45,10 +47,12 @@
 | Режим | Что делает |
 |---|---|
 | `orbital` | спавнит снаряды на `+300` блоков над целью (с ограничением по высоте мира) и сбрасывает вниз. Радиус разброса — `25` блоков, то есть широкая «орбитальная» воронка вокруг цели. |
+| `megaorbital` | мегаорбиталка: спавнит TNT на `+300` блоков над целью с радиусом разброса `1000` блоков — огромная круговая воронка. |
 | `stab` | спавнит TNT над целью, затем быстро ведёт её вниз сквозь блоки и подрывает на `depth` блоков ниже цели. Радиус маленький (`1.5`), поэтому удар точный и глубокий. |
+| `wither` | стреляет головами визера (`WITHER_SKULL`) — они падают сверху и взрываются при ударе. |
 
 `stab` работает так только для TNT; остальные сущности в этом режиме просто падают с высокой скоростью.
-Если указать только режим, используется `modes.<режим>.projectile` из конфига (по умолчанию `TNT`).
+Если указать только режим, используется `modes.<режим>.projectile` из конфига (по умолчанию `TNT` или `WITHER_SKULL`).
 Можно выбрать сущность явно: `/egg orbital:warden 100 Steve rod`.
 
 Высота, разброс, радиус, скорость, глубина и фитиль TNT настраиваются отдельно для каждого режима в секции `modes`.
@@ -120,7 +124,9 @@ mvn -f C:\Users\user\egg-plugin\pom.xml clean package
 - `spawn.tnt-fuse-extra` — доп. тики к фитилю TNT (фитиль считается от высоты).
 - `spawn.disable-ai` — отключить AI у мобов.
 - `modes.orbital.projectile`, `modes.orbital.height`, `modes.orbital.height-jitter`, `modes.orbital.radius`, `modes.orbital.velocity`, `modes.orbital.tnt-fuse-extra` — параметры орбитального режима.
+- `modes.megaorbital.projectile`, `modes.megaorbital.height`, `modes.megaorbital.height-jitter`, `modes.megaorbital.radius`, `modes.megaorbital.velocity`, `modes.megaorbital.tnt-fuse-extra` — параметры мегаорбитального режима.
 - `modes.stab.projectile`, `modes.stab.height`, `modes.stab.height-jitter`, `modes.stab.radius`, `modes.stab.velocity`, `modes.stab.depth`, `modes.stab.speed`, `modes.stab.yield` — параметры режима `stab`. `depth` — на сколько блоков ниже цели взрывается заряд, `speed` — скорость погружения в блоках за тик, `yield` — мощность взрыва.
+- `modes.wither.projectile`, `modes.wither.height`, `modes.wither.height-jitter`, `modes.wither.radius`, `modes.wither.velocity` — параметры режима `wither`.
 - `mobs.slow-falling` — плавное падение мобов (Slow Falling).
 - `mobs.slow-falling-seconds` — длительность эффекта.
 - `mobs.fall-speed` — начальная скорость падения мобов (отрицательная — вниз).
