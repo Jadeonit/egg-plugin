@@ -34,6 +34,10 @@ public final class CannonConfig {
     private String rodName = "";
     private boolean rodLore = false;
 
+    private boolean mobSlowFalling = true;
+    private int mobSlowFallingSeconds = 30;
+    private double mobFallSpeed = -0.3;
+
     public void reload(FileConfiguration c) {
         this.defaultProjectile = parseType(c.getString("defaults.projectile", "TNT"));
         if (this.defaultProjectile == null) {
@@ -70,6 +74,10 @@ public final class CannonConfig {
 
         this.rodName = c.getString("disguise.rod-name", "");
         this.rodLore = c.getBoolean("disguise.rod-lore", false);
+
+        this.mobSlowFalling = c.getBoolean("mobs.slow-falling", true);
+        this.mobSlowFallingSeconds = Math.max(1, c.getInt("mobs.slow-falling-seconds", 30));
+        this.mobFallSpeed = c.getDouble("mobs.fall-speed", -0.3);
     }
 
     public static EntityType parseType(String raw) {
@@ -154,5 +162,17 @@ public final class CannonConfig {
 
     public boolean rodLore() {
         return rodLore;
+    }
+
+    public boolean mobSlowFalling() {
+        return mobSlowFalling;
+    }
+
+    public int mobSlowFallingSeconds() {
+        return mobSlowFallingSeconds;
+    }
+
+    public double mobFallSpeed() {
+        return mobFallSpeed;
     }
 }

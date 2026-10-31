@@ -7,9 +7,12 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.FallingBlock;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TNTPrimed;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
@@ -207,7 +210,17 @@ public final class CannonService {
 
             entity.setPersistent(false);
             entity.addScoreboardTag(TAG);
-            entity.setVelocity(new Vector(0.0, config.velocity(), 0.0));
+
+            Vector velocity = new Vector(0.0, config.velocity(), 0.0);
+            if (entity instanceof LivingEntity living) {
+                living.setFallDistance(0.0f);
+                if (config.mobSlowFalling()) {
+                    living.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING,
+                            config.mobSlowFallingSeconds() * 20, 0, true, false, false));
+                }
+                velocity = new Vector(0.0, config.mobFallSpeed(), 0.0);
+            }
+            entity.setVelocity(velocity);
 
             if (config.cleanupSeconds() > 0) {
                 spawnedUntil.put(entity.getUniqueId(), System.currentTimeMillis() + config.cleanupSeconds() * 1000L);

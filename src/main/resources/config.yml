@@ -19,6 +19,11 @@ spawn:
   falling-block-material: SAND
   disable-ai: false
 
+mobs:
+  slow-falling: true
+  slow-falling-seconds: 30
+  fall-speed: -0.3
+
 safety:
   max-entities-per-fire: 2000
   unlimited-cap: 500

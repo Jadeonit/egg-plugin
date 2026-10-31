@@ -34,6 +34,7 @@ public final class OrbitalCannonPlugin extends JavaPlugin {
         }
 
         getServer().getPluginManager().registerEvents(new RodListener(items, service, settings), this);
+        getServer().getPluginManager().registerEvents(new FallDamageListener(), this);
 
         this.cleanupTask = getServer().getScheduler().runTaskTimer(this, service::cleanupExpired, 100L, 100L);
 

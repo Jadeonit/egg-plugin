@@ -7,6 +7,11 @@
 
 [Скачать последний релиз](https://github.com/Jadeonit/egg-plugin/releases) · [Лицензия MIT](LICENSE)
 
+- Любой снаряд: TNT, яйца, вардены, зомби и другие сущности.
+- Мобы падают плавно (Slow Falling) и не получают урон от падения.
+- Любое количество, включая `unlimited`.
+- Запуск командой или уже настроенной удочкой.
+
 ## Команда
 
 ```
@@ -95,6 +100,9 @@ mvn -f C:\Users\user\OrbitalCannon\pom.xml clean package
 - `spawn.per-tick` — сколько сущностей спавнить за тик (антилаг).
 - `spawn.tnt-fuse-extra` — доп. тики к фитилю TNT (фитиль считается от высоты).
 - `spawn.disable-ai` — отключить AI у мобов.
+- `mobs.slow-falling` — плавное падение мобов (Slow Falling).
+- `mobs.slow-falling-seconds` — длительность эффекта.
+- `mobs.fall-speed` — начальная скорость падения мобов (отрицательная — вниз).
 - `safety.max-entities-per-fire` — жёсткий лимит на залп (`-1` = без лимита).
 - `safety.unlimited-cap` — сколько реально спавнить при `unlimited` (`-1` = без лимита).
 - `safety.cleanup-seconds` — автоудаление снарядов (`0` = не удалять).
