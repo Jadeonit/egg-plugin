@@ -33,8 +33,9 @@ modes:
     height-jitter: 4
     radius: 1.5
     velocity: -8.0
-    depth: 3
-    speed: 2.0
+    depth: 8
+    speed: 2.5
+    yield: 6.0
 
 mobs:
   slow-falling: true

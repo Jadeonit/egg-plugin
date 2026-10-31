@@ -50,8 +50,9 @@ public final class CannonConfig {
     private double stabJitter = 4.0;
     private double stabRadius = 1.5;
     private double stabVelocity = -8.0;
-    private double stabDepth = 3.0;
-    private double stabSpeed = 2.0;
+    private double stabDepth = 8.0;
+    private double stabSpeed = 2.5;
+    private float stabYield = 6.0f;
 
     public void reload(FileConfiguration c) {
         this.defaultProjectile = parseType(c.getString("defaults.projectile", "TNT"));
@@ -112,8 +113,9 @@ public final class CannonConfig {
         this.stabJitter = Math.max(0.0, c.getDouble("modes.stab.height-jitter", 4.0));
         this.stabRadius = Math.max(0.0, c.getDouble("modes.stab.radius", 1.5));
         this.stabVelocity = c.getDouble("modes.stab.velocity", -8.0);
-        this.stabDepth = Math.max(0.0, c.getDouble("modes.stab.depth", 3.0));
-        this.stabSpeed = Math.max(0.25, c.getDouble("modes.stab.speed", 2.0));
+        this.stabDepth = Math.max(0.0, c.getDouble("modes.stab.depth", 8.0));
+        this.stabSpeed = Math.max(0.25, c.getDouble("modes.stab.speed", 2.5));
+        this.stabYield = (float) Math.max(0.0, c.getDouble("modes.stab.yield", 6.0));
     }
 
     public static EntityType parseType(String raw) {
@@ -266,5 +268,9 @@ public final class CannonConfig {
 
     public double stabSpeed() {
         return stabSpeed;
+    }
+
+    public float stabYield() {
+        return stabYield;
     }
 }

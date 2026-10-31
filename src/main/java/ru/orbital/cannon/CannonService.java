@@ -163,6 +163,7 @@ public final class CannonService {
     private void trackStab(TNTPrimed tnt, double targetY) {
         tnt.setGravity(false);
         tnt.setVelocity(new Vector(0.0, 0.0, 0.0));
+        tnt.setYield(config.stabYield());
         tnt.setFuseTicks(6000);
         stabShots.put(tnt.getUniqueId(), new StabShot(targetY));
         if (stabTask == null || stabTask.isCancelled()) {

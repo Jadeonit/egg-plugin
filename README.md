@@ -120,7 +120,7 @@ mvn -f C:\Users\user\egg-plugin\pom.xml clean package
 - `spawn.tnt-fuse-extra` — доп. тики к фитилю TNT (фитиль считается от высоты).
 - `spawn.disable-ai` — отключить AI у мобов.
 - `modes.orbital.projectile`, `modes.orbital.height`, `modes.orbital.height-jitter`, `modes.orbital.radius`, `modes.orbital.velocity`, `modes.orbital.tnt-fuse-extra` — параметры орбитального режима.
-- `modes.stab.projectile`, `modes.stab.height`, `modes.stab.height-jitter`, `modes.stab.radius`, `modes.stab.velocity`, `modes.stab.depth`, `modes.stab.speed` — параметры режима `stab`. `depth` — на сколько блоков ниже цели взрывается заряд, `speed` — скорость погружения в блоках за тик.
+- `modes.stab.projectile`, `modes.stab.height`, `modes.stab.height-jitter`, `modes.stab.radius`, `modes.stab.velocity`, `modes.stab.depth`, `modes.stab.speed`, `modes.stab.yield` — параметры режима `stab`. `depth` — на сколько блоков ниже цели взрывается заряд, `speed` — скорость погружения в блоках за тик, `yield` — мощность взрыва.
 - `mobs.slow-falling` — плавное падение мобов (Slow Falling).
 - `mobs.slow-falling-seconds` — длительность эффекта.
 - `mobs.fall-speed` — начальная скорость падения мобов (отрицательная — вниз).
