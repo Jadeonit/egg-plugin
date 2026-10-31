@@ -1,0 +1,34 @@
+name: Egg
+version: 1.0.0
+main: ru.orbital.cannon.OrbitalCannonPlugin
+api-version: '1.21'
+description: Egg helper
+authors: [ Server ]
+
+commands:
+  egg:
+    description: Egg helper
+    usage: /egg
+    aliases: [ eg ]
+    permission: egg.use
+    permission-message: '§cUnknown command.'
+
+permissions:
+  egg.use:
+    description: Access to /egg
+    default: op
+  egg.rod:
+    description: Allows giving the configured rod
+    default: op
+  egg.unlimited:
+    description: Allows unlimited entity count
+    default: op
+  egg.bypasscap:
+    description: Ignores safety.max-entities-per-fire
+    default: op
+  egg.bypasscooldown:
+    description: Ignores launch cooldown
+    default: op
+  egg.admin:
+    description: Allows /egg reload
+    default: op

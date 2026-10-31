@@ -1,0 +1,32 @@
+disguise:
+  rod-name: ""
+  rod-lore: false
+
+messages:
+  prefix: ""
+
+defaults:
+  projectile: TNT
+  count: 50
+
+spawn:
+  height: 60
+  height-jitter: 10
+  radius: 8
+  velocity: -2.5
+  per-tick: 20
+  tnt-fuse-extra: 5
+  falling-block-material: SAND
+  disable-ai: false
+
+safety:
+  max-entities-per-fire: 2000
+  unlimited-cap: 500
+  cleanup-seconds: 600
+  blocked-types:
+    - ENDER_DRAGON
+
+cooldown-seconds: 3
+
+effects:
+  launch-sound: true
