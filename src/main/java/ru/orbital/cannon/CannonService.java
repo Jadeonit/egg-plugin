@@ -14,6 +14,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
@@ -34,6 +35,9 @@ public final class CannonService {
 
     private final Map<UUID, Long> cooldowns = new HashMap<>();
     private final Map<UUID, Long> spawnedUntil = new HashMap<>();
+    private final Map<UUID, StabShot> stabShots = new HashMap<>();
+
+    private BukkitTask stabTask;
 
     public CannonService(JavaPlugin plugin, CannonConfig config) {
         this.plugin = plugin;
@@ -142,6 +146,11 @@ public final class CannonService {
     }
 
     public void removeAll() {
+        if (stabTask != null) {
+            stabTask.cancel();
+            stabTask = null;
+        }
+        stabShots.clear();
         for (UUID uuid : spawnedUntil.keySet()) {
             Entity entity = Bukkit.getEntity(uuid);
             if (entity != null && entity.isValid()) {
@@ -149,6 +158,48 @@ public final class CannonService {
             }
         }
         spawnedUntil.clear();
+    }
+
+    private void trackStab(TNTPrimed tnt, double targetY) {
+        tnt.setGravity(false);
+        tnt.setVelocity(new Vector(0.0, 0.0, 0.0));
+        tnt.setFuseTicks(6000);
+        stabShots.put(tnt.getUniqueId(), new StabShot(targetY));
+        if (stabTask == null || stabTask.isCancelled()) {
+            stabTask = Bukkit.getScheduler().runTaskTimer(plugin, this::tickStabShots, 1L, 1L);
+        }
+    }
+
+    private void tickStabShots() {
+        if (stabShots.isEmpty()) {
+            if (stabTask != null) {
+                stabTask.cancel();
+                stabTask = null;
+            }
+            return;
+        }
+
+        double step = config.stabSpeed();
+        Iterator<Map.Entry<UUID, StabShot>> it = stabShots.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<UUID, StabShot> entry = it.next();
+            Entity entity = Bukkit.getEntity(entry.getKey());
+            if (!(entity instanceof TNTPrimed tnt) || !tnt.isValid()) {
+                it.remove();
+                continue;
+            }
+
+            Location location = tnt.getLocation();
+            double targetY = entry.getValue().targetY();
+            double nextY = location.getY() - step;
+            if (nextY <= targetY) {
+                tnt.teleport(new Location(location.getWorld(), location.getX(), targetY, location.getZ()));
+                tnt.setFuseTicks(1);
+                it.remove();
+                continue;
+            }
+            tnt.teleport(new Location(location.getWorld(), location.getX(), nextY, location.getZ()));
+        }
     }
 
     private final class SalvoTask extends BukkitRunnable {
@@ -214,13 +265,14 @@ public final class CannonService {
 
             double vertical = config.modeVelocity(mode);
             if (entity instanceof TNTPrimed tnt) {
-                double fallDistance = Math.max(1.0, y - center.getY());
-                int fallTicks = mode == SpawnMode.STAB
-                        ? estimateNoGravityTicks(fallDistance, Math.abs(vertical))
-                        : estimateFallTicks(fallDistance, Math.abs(vertical));
-                tnt.setFuseTicks(Math.max(10, fallTicks + config.modeFuseExtra(mode)));
                 if (mode == SpawnMode.STAB) {
-                    tnt.setGravity(false);
+                    double targetY = Math.max(world.getMinHeight() + 1.0,
+                            center.getY() - config.stabDepth());
+                    trackStab(tnt, targetY);
+                } else {
+                    double fallDistance = Math.max(1.0, y - center.getY());
+                    int fallTicks = estimateFallTicks(fallDistance, Math.abs(vertical));
+                    tnt.setFuseTicks(Math.max(10, fallTicks + config.modeFuseExtra(mode)));
                 }
             }
 
@@ -242,7 +294,11 @@ public final class CannonService {
                     velocity = new Vector(0.0, config.mobFallSpeed(), 0.0);
                 }
             }
-            entity.setVelocity(velocity);
+            if (mode == SpawnMode.STAB && entity instanceof TNTPrimed) {
+                entity.setVelocity(new Vector(0.0, 0.0, 0.0));
+            } else {
+                entity.setVelocity(velocity);
+            }
 
             if (config.cleanupSeconds() > 0) {
                 spawnedUntil.put(entity.getUniqueId(), System.currentTimeMillis() + config.cleanupSeconds() * 1000L);
@@ -275,15 +331,6 @@ public final class CannonService {
         return ticks;
     }
 
-    private static int estimateNoGravityTicks(double distance, double initialSpeed) {
-        double y = 0.0;
-        double velocity = Math.abs(initialSpeed);
-        int ticks = 0;
-        while (y < distance && ticks < 2000) {
-            y += velocity;
-            velocity *= 0.98;
-            ticks++;
-        }
-        return ticks;
+    private record StabShot(double targetY) {
     }
 }

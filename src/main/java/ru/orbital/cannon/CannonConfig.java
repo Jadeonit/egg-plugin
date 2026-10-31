@@ -41,16 +41,17 @@ public final class CannonConfig {
     private EntityType orbitalProjectile = EntityType.TNT;
     private double orbitalHeight = 300.0;
     private double orbitalJitter = 6.0;
-    private double orbitalRadius = 8.0;
+    private double orbitalRadius = 25.0;
     private double orbitalVelocity = -2.5;
     private int orbitalFuseExtra = 10;
 
     private EntityType stabProjectile = EntityType.TNT;
     private double stabHeight = 300.0;
     private double stabJitter = 4.0;
-    private double stabRadius = 6.0;
+    private double stabRadius = 1.5;
     private double stabVelocity = -8.0;
-    private int stabFuseExtra = 2;
+    private double stabDepth = 3.0;
+    private double stabSpeed = 2.0;
 
     public void reload(FileConfiguration c) {
         this.defaultProjectile = parseType(c.getString("defaults.projectile", "TNT"));
@@ -99,7 +100,7 @@ public final class CannonConfig {
         }
         this.orbitalHeight = c.getDouble("modes.orbital.height", 300.0);
         this.orbitalJitter = Math.max(0.0, c.getDouble("modes.orbital.height-jitter", 6.0));
-        this.orbitalRadius = Math.max(0.0, c.getDouble("modes.orbital.radius", 8.0));
+        this.orbitalRadius = Math.max(0.0, c.getDouble("modes.orbital.radius", 25.0));
         this.orbitalVelocity = c.getDouble("modes.orbital.velocity", -2.5);
         this.orbitalFuseExtra = Math.max(0, c.getInt("modes.orbital.tnt-fuse-extra", 10));
 
@@ -109,9 +110,10 @@ public final class CannonConfig {
         }
         this.stabHeight = c.getDouble("modes.stab.height", 300.0);
         this.stabJitter = Math.max(0.0, c.getDouble("modes.stab.height-jitter", 4.0));
-        this.stabRadius = Math.max(0.0, c.getDouble("modes.stab.radius", 6.0));
+        this.stabRadius = Math.max(0.0, c.getDouble("modes.stab.radius", 1.5));
         this.stabVelocity = c.getDouble("modes.stab.velocity", -8.0);
-        this.stabFuseExtra = Math.max(0, c.getInt("modes.stab.tnt-fuse-extra", 2));
+        this.stabDepth = Math.max(0.0, c.getDouble("modes.stab.depth", 3.0));
+        this.stabSpeed = Math.max(0.25, c.getDouble("modes.stab.speed", 2.0));
     }
 
     public static EntityType parseType(String raw) {
@@ -253,8 +255,16 @@ public final class CannonConfig {
     public int modeFuseExtra(SpawnMode mode) {
         return switch (mode) {
             case ORBITAL -> orbitalFuseExtra;
-            case STAB -> stabFuseExtra;
+            case STAB -> 0;
             default -> tntFuseExtra;
         };
+    }
+
+    public double stabDepth() {
+        return stabDepth;
+    }
+
+    public double stabSpeed() {
+        return stabSpeed;
     }
 }

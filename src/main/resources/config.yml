@@ -24,16 +24,17 @@ modes:
     projectile: TNT
     height: 300
     height-jitter: 6
-    radius: 8
+    radius: 25
     velocity: -2.5
     tnt-fuse-extra: 10
   stab:
     projectile: TNT
     height: 300
     height-jitter: 4
-    radius: 6
+    radius: 1.5
     velocity: -8.0
-    tnt-fuse-extra: 2
+    depth: 3
+    speed: 2.0
 
 mobs:
   slow-falling: true

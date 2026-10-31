@@ -44,13 +44,14 @@
 
 | Режим | Что делает |
 |---|---|
-| `orbital` | спавнит снаряды на `+300` блоков над целью (с ограничением по высоте мира) и сбрасывает вниз — «орбитальный» залп. |
-| `stab` | спавнит там же, но с высокой начальной скоростью вниз (`-8.0`), чтобы заряд вбивался в землю и взрывался у поверхности. |
+| `orbital` | спавнит снаряды на `+300` блоков над целью (с ограничением по высоте мира) и сбрасывает вниз. Радиус разброса — `25` блоков, то есть широкая «орбитальная» воронка вокруг цели. |
+| `stab` | спавнит TNT над целью, затем быстро ведёт её вниз сквозь блоки и подрывает на `depth` блоков ниже цели. Радиус маленький (`1.5`), поэтому удар точный и глубокий. |
 
+`stab` работает так только для TNT; остальные сущности в этом режиме просто падают с высокой скоростью.
 Если указать только режим, используется `modes.<режим>.projectile` из конфига (по умолчанию `TNT`).
 Можно выбрать сущность явно: `/egg orbital:warden 100 Steve rod`.
 
-Высота, разброс, радиус, скорость и фитиль TNT настраиваются отдельно для каждого режима в секции `modes`.
+Высота, разброс, радиус, скорость, глубина и фитиль TNT настраиваются отдельно для каждого режима в секции `modes`.
 
 ## Маскировка
 
@@ -119,7 +120,7 @@ mvn -f C:\Users\user\egg-plugin\pom.xml clean package
 - `spawn.tnt-fuse-extra` — доп. тики к фитилю TNT (фитиль считается от высоты).
 - `spawn.disable-ai` — отключить AI у мобов.
 - `modes.orbital.projectile`, `modes.orbital.height`, `modes.orbital.height-jitter`, `modes.orbital.radius`, `modes.orbital.velocity`, `modes.orbital.tnt-fuse-extra` — параметры орбитального режима.
-- `modes.stab.projectile`, `modes.stab.height`, `modes.stab.height-jitter`, `modes.stab.radius`, `modes.stab.velocity`, `modes.stab.tnt-fuse-extra` — параметры режима `stab`.
+- `modes.stab.projectile`, `modes.stab.height`, `modes.stab.height-jitter`, `modes.stab.radius`, `modes.stab.velocity`, `modes.stab.depth`, `modes.stab.speed` — параметры режима `stab`. `depth` — на сколько блоков ниже цели взрывается заряд, `speed` — скорость погружения в блоках за тик.
 - `mobs.slow-falling` — плавное падение мобов (Slow Falling).
 - `mobs.slow-falling-seconds` — длительность эффекта.
 - `mobs.fall-speed` — начальная скорость падения мобов (отрицательная — вниз).
