@@ -12,12 +12,14 @@ public final class PlayerSettings {
     private int count;
     private UUID target;
     private SpawnMode mode;
+    private String args;
 
-    public PlayerSettings(EntityType projectile, int count, UUID target, SpawnMode mode) {
+    public PlayerSettings(EntityType projectile, int count, UUID target, SpawnMode mode, String args) {
         this.projectile = projectile;
         this.count = count;
         this.target = target;
         this.mode = mode;
+        this.args = args;
     }
 
     public EntityType getProjectile() {
@@ -50,5 +52,13 @@ public final class PlayerSettings {
 
     public void setMode(SpawnMode mode) {
         this.mode = mode;
+    }
+
+    public String getArgs() {
+        return args;
+    }
+
+    public void setArgs(String args) {
+        this.args = args;
     }
 }

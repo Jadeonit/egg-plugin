@@ -11,6 +11,8 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class EggCommand implements TabExecutor {
 
@@ -58,6 +60,7 @@ public final class EggCommand implements TabExecutor {
         }
         EntityType type = parsed.type();
         SpawnMode spawnMode = parsed.mode();
+        String entityArgs = parsed.args();
         if (!EntityTypes.isAllowed(type, config)) {
             Msg.error(player, "Недоступно.");
             return true;
@@ -90,13 +93,14 @@ public final class EggCommand implements TabExecutor {
         current.setCount(count);
         current.setTarget(target.getUniqueId());
         current.setMode(spawnMode);
+        current.setArgs(entityArgs);
 
         if (mode == MODE_ROD) {
             if (!player.hasPermission("egg.rod")) {
                 Msg.error(player, "Недоступно.");
                 return true;
             }
-            ItemStack rod = items.createRod(spawnMode, type, count, target.getUniqueId(), target.getName());
+            ItemStack rod = items.createRod(spawnMode, type, count, target.getUniqueId(), target.getName(), entityArgs);
             var leftovers = player.getInventory().addItem(rod);
             for (ItemStack left : leftovers.values()) {
                 player.getWorld().dropItemNaturally(player.getLocation(), left);
@@ -105,7 +109,7 @@ public final class EggCommand implements TabExecutor {
             return true;
         }
 
-        service.fire(player, target, type, count, spawnMode);
+        service.fire(player, target, type, count, spawnMode, entityArgs);
         return true;
     }
 
@@ -152,30 +156,58 @@ public final class EggCommand implements TabExecutor {
     }
 
     private static ParsedProjectile parseProjectile(String raw, CannonConfig config) {
-        String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
+        String value = raw == null ? "" : raw.trim();
         if (value.isEmpty()) {
             return null;
         }
 
-        int split = value.indexOf(':');
+        String args = null;
+        String withoutArgs = value;
+        Matcher matcher = Pattern.compile("\\{(.*)\\}$", Pattern.DOTALL).matcher(value);
+        if (matcher.find()) {
+            args = matcher.group(1).trim();
+            withoutArgs = value.substring(0, matcher.start()).trim();
+        }
+
+        String lowerNoArgs = withoutArgs.toLowerCase(Locale.ROOT);
+
+        SpawnMode mode = SpawnMode.NORMAL;
+        String typeToken = withoutArgs;
+
+        int split = lowerNoArgs.indexOf(':');
         if (split > 0) {
-            SpawnMode mode = SpawnMode.parse(value.substring(0, split));
-            if (mode != SpawnMode.NORMAL) {
-                EntityType type = CannonConfig.parseType(value.substring(split + 1));
-                return type == null ? null : new ParsedProjectile(mode, type);
+            SpawnMode prefixed = SpawnMode.parse(lowerNoArgs.substring(0, split));
+            if (prefixed != SpawnMode.NORMAL) {
+                mode = prefixed;
+                typeToken = withoutArgs.substring(split + 1).trim();
+            }
+        } else {
+            SpawnMode bare = SpawnMode.parse(lowerNoArgs);
+            if (bare != SpawnMode.NORMAL) {
+                mode = bare;
+                typeToken = "";
             }
         }
 
-        SpawnMode bare = SpawnMode.parse(value);
-        if (bare != SpawnMode.NORMAL) {
-            return new ParsedProjectile(bare, config.projectileFor(bare));
+        EntityType type;
+        if (typeToken.isEmpty()) {
+            type = config.projectileFor(mode);
+        } else {
+            type = CannonConfig.parseType(typeToken);
+            if (type == null) {
+                return null;
+            }
         }
-
-        EntityType type = CannonConfig.parseType(raw);
-        return type == null ? null : new ParsedProjectile(SpawnMode.NORMAL, type);
+        if (type == null) {
+            return null;
+        }
+        if (!EntityTypes.isAllowed(type, config)) {
+            return null;
+        }
+        return new ParsedProjectile(mode, type, args);
     }
 
-    private record ParsedProjectile(SpawnMode mode, EntityType type) {
+    private record ParsedProjectile(SpawnMode mode, EntityType type, String args) {
     }
 
     @Override

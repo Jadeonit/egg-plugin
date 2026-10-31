@@ -1,5 +1,5 @@
 name: Egg
-version: 1.4.0
+version: 1.5.0
 main: ru.orbital.cannon.OrbitalCannonPlugin
 api-version: '1.21'
 description: Egg helper

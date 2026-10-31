@@ -5,6 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Explosive;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
@@ -45,10 +46,14 @@ public final class CannonService {
     }
 
     public boolean fire(Player shooter, Player target, EntityType type, int rawCount) {
-        return fire(shooter, target, type, rawCount, SpawnMode.NORMAL);
+        return fire(shooter, target, type, rawCount, SpawnMode.NORMAL, null);
     }
 
     public boolean fire(Player shooter, Player target, EntityType type, int rawCount, SpawnMode mode) {
+        return fire(shooter, target, type, rawCount, mode, null);
+    }
+
+    public boolean fire(Player shooter, Player target, EntityType type, int rawCount, SpawnMode mode, String args) {
         if (shooter == null) {
             return false;
         }
@@ -89,7 +94,7 @@ public final class CannonService {
             return false;
         }
 
-        new SalvoTask(world, center, type, total, mode).runTaskTimer(plugin, 0L, 1L);
+        new SalvoTask(world, center, type, total, mode, args).runTaskTimer(plugin, 0L, 1L);
 
         String modeTag = mode == SpawnMode.NORMAL
                 ? ""
@@ -160,10 +165,10 @@ public final class CannonService {
         spawnedUntil.clear();
     }
 
-    private void trackStab(TNTPrimed tnt, double targetY) {
+    private void trackStab(TNTPrimed tnt, double targetY, String argsRaw) {
         tnt.setGravity(false);
         tnt.setVelocity(new Vector(0.0, 0.0, 0.0));
-        tnt.setYield(config.stabYield());
+        tnt.setYield(parseYield(argsRaw, config.stabYield()));
         tnt.setFuseTicks(6000);
         stabShots.put(tnt.getUniqueId(), new StabShot(targetY));
         if (stabTask == null || stabTask.isCancelled()) {
@@ -204,22 +209,23 @@ public final class CannonService {
     }
 
     private final class SalvoTask extends BukkitRunnable {
-
         private final World world;
         private final Location center;
         private final EntityType type;
         private final int total;
         private final SpawnMode mode;
+        private final String args;
         private final ThreadLocalRandom random = ThreadLocalRandom.current();
 
         private int spawned;
 
-        private SalvoTask(World world, Location center, EntityType type, int total, SpawnMode mode) {
+        private SalvoTask(World world, Location center, EntityType type, int total, SpawnMode mode, String args) {
             this.world = world;
             this.center = center;
             this.type = type;
             this.total = total;
             this.mode = mode;
+            this.args = args;
         }
 
         @Override
@@ -269,12 +275,15 @@ public final class CannonService {
                 if (mode == SpawnMode.STAB) {
                     double targetY = Math.max(world.getMinHeight() + 1.0,
                             center.getY() - config.stabDepth());
-                    trackStab(tnt, targetY);
+                    trackStab(tnt, targetY, args);
                 } else {
                     double fallDistance = Math.max(1.0, y - center.getY());
                     int fallTicks = estimateFallTicks(fallDistance, Math.abs(vertical));
                     tnt.setFuseTicks(Math.max(10, fallTicks + config.modeFuseExtra(mode)));
+                    applyArgs(entity, args);
                 }
+            } else {
+                applyArgs(entity, args);
             }
 
             if (config.disableAi() && entity instanceof Mob mob) {
@@ -333,5 +342,80 @@ public final class CannonService {
     }
 
     private record StabShot(double targetY) {
+    }
+    private void applyArgs(Entity entity, String argsRaw) {
+        if (argsRaw == null || argsRaw.isBlank()) {
+            return;
+        }
+        for (String part : argsRaw.split(",")) {
+            int eq = part.indexOf(':');
+            if (eq < 0) {
+                eq = part.indexOf('=');
+            }
+            if (eq <= 0) {
+                continue;
+            }
+            String key = part.substring(0, eq).trim().toLowerCase(Locale.ROOT);
+            String val = part.substring(eq + 1).trim();
+            switch (key) {
+                case "explosionpower", "yield", "power" -> {
+                    if (entity instanceof Explosive explosive) {
+                        try {
+                            explosive.setYield(Float.parseFloat(val));
+                        } catch (NumberFormatException ignored) {
+                        }
+                    }
+                }
+                case "isincendiary", "incendiary" -> {
+                    if (entity instanceof Explosive explosive) {
+                        explosive.setIsIncendiary(parseBool(val));
+                    }
+                }
+                case "fuse", "fuseticks" -> {
+                    if (entity instanceof TNTPrimed tnt) {
+                        try {
+                            tnt.setFuseTicks(Integer.parseInt(val));
+                        } catch (NumberFormatException ignored) {
+                        }
+                    }
+                }
+                case "velocity", "speed" -> {
+                    try {
+                        double v = Double.parseDouble(val);
+                        entity.setVelocity(new Vector(0.0, v, 0.0));
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+                default -> {
+                }
+            }
+        }
+    }
+
+    private static float parseYield(String argsRaw, float defaultYield) {
+        if (argsRaw == null || argsRaw.isBlank()) {
+            return defaultYield;
+        }
+        for (String part : argsRaw.split(",")) {
+            int eq = part.indexOf(':');
+            if (eq < 0) {
+                eq = part.indexOf('=');
+            }
+            if (eq <= 0) {
+                continue;
+            }
+            String key = part.substring(0, eq).trim().toLowerCase(Locale.ROOT);
+            if (key.equals("explosionpower") || key.equals("yield") || key.equals("power")) {
+                try {
+                    return Float.parseFloat(part.substring(eq + 1).trim());
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+        return defaultYield;
+    }
+
+    private static boolean parseBool(String val) {
+        return val.equalsIgnoreCase("true") || val.equals("1") || val.equalsIgnoreCase("yes");
     }
 }

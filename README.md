@@ -18,9 +18,22 @@
 /egg <снаряд|orbital|megaorbital|stab|wither> <кол-во> <цель> <fire|rod>
 ```
 
+Аргументы сущности (опционально, в фигурных скобках прямо после типа):
+```
+/egg fireball{ExplosionPower:127} 10 Steve fire
+/egg tnt{fuse:5} 100 Steve rod
+/egg fireball{ExplosionPower:127,IsIncendiary:true} 10 Steve fire
+```
+
+Поддерживаемые аргументы:
+- `ExplosionPower` / `Yield` / `Power` — мощность взрыва (TNT, fireball, wither skull).
+- `IsIncendiary` / `Incendiary` — поджигает блоки при взрыве.
+- `fuse` / `FuseTicks` — фитиль TNT.
+- `velocity` / `speed` — вертикальная скорость.
+
 | Аргумент | Значения |
 |---|---|
-| `снаряд` | `tnt`, `egg`, `warden`, `zombie`, `creeper`, `falling_block`, ... |
+| `снаряд` | `tnt`, `egg`, `warden`, `zombie`, `creeper`, `falling_block`, `fireball`, ... |
 | `режим` | `orbital` — орбитальный залп; `megaorbital` — мегаорбиталка (радиус 1000); `stab` — скоростной удар вниз; `wither` — стреляет головами визера; можно совмещать с типом: `orbital:warden`, `stab:creeper` |
 | `кол-во` | число или `unlimited` |
 | `цель` | ник игрока, `me` / `я` |
@@ -38,6 +51,8 @@
 /egg stab 100 Jadeonit fire
 /egg wither 100 Jadeonit rod
 /egg orbital:warden 50 Steve rod
+/egg fireball{ExplosionPower:127} 10 Steve fire
+/egg tnt{fuse:5} 100 Steve rod
 ```
 
 ## Режимы

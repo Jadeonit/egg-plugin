@@ -23,6 +23,7 @@ public final class CannonItems {
     private final NamespacedKey countKey;
     private final NamespacedKey targetKey;
     private final NamespacedKey modeKey;
+    private final NamespacedKey argsKey;
 
     public CannonItems(OrbitalCannonPlugin plugin, CannonConfig config) {
         this.config = config;
@@ -30,9 +31,10 @@ public final class CannonItems {
         this.countKey = new NamespacedKey(plugin, "rod_count");
         this.targetKey = new NamespacedKey(plugin, "rod_target");
         this.modeKey = new NamespacedKey(plugin, "rod_mode");
+        this.argsKey = new NamespacedKey(plugin, "rod_args");
     }
 
-    public ItemStack createRod(SpawnMode mode, EntityType type, int count, UUID targetId, String targetName) {
+    public ItemStack createRod(SpawnMode mode, EntityType type, int count, UUID targetId, String targetName, String args) {
         ItemStack item = new ItemStack(Material.FISHING_ROD);
         ItemMeta meta = item.getItemMeta();
         if (meta == null) {
@@ -68,6 +70,9 @@ public final class CannonItems {
         pdc.set(typeKey, PersistentDataType.STRING, type.name());
         pdc.set(countKey, PersistentDataType.INTEGER, count);
         pdc.set(modeKey, PersistentDataType.STRING, mode.name());
+        if (args != null && !args.isBlank()) {
+            pdc.set(argsKey, PersistentDataType.STRING, args);
+        }
         if (targetId != null) {
             pdc.set(targetKey, PersistentDataType.STRING, targetId.toString());
         }
@@ -111,6 +116,14 @@ public final class CannonItems {
         }
         String raw = meta.getPersistentDataContainer().get(modeKey, PersistentDataType.STRING);
         return SpawnMode.parse(raw);
+    }
+
+    public String readArgs(ItemStack item) {
+        ItemMeta meta = item == null ? null : item.getItemMeta();
+        if (meta == null) {
+            return null;
+        }
+        return meta.getPersistentDataContainer().get(argsKey, PersistentDataType.STRING);
     }
 
     public boolean hasMode(ItemStack item) {
