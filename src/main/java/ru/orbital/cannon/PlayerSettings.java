@@ -11,11 +11,13 @@ public final class PlayerSettings {
     private EntityType projectile;
     private int count;
     private UUID target;
+    private SpawnMode mode;
 
-    public PlayerSettings(EntityType projectile, int count, UUID target) {
+    public PlayerSettings(EntityType projectile, int count, UUID target, SpawnMode mode) {
         this.projectile = projectile;
         this.count = count;
         this.target = target;
+        this.mode = mode;
     }
 
     public EntityType getProjectile() {
@@ -40,5 +42,13 @@ public final class PlayerSettings {
 
     public void setTarget(UUID target) {
         this.target = target;
+    }
+
+    public SpawnMode getMode() {
+        return mode == null ? SpawnMode.NORMAL : mode;
+    }
+
+    public void setMode(SpawnMode mode) {
+        this.mode = mode;
     }
 }

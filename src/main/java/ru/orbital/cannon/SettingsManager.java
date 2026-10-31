@@ -18,7 +18,7 @@ public final class SettingsManager {
 
     public PlayerSettings get(Player player) {
         return settings.computeIfAbsent(player.getUniqueId(),
-                id -> new PlayerSettings(config.defaultProjectile(), config.defaultCount(), null));
+                id -> new PlayerSettings(config.defaultProjectile(), config.defaultCount(), null, SpawnMode.NORMAL));
     }
 
     public void reset(Player player) {

@@ -51,8 +51,14 @@ public final class EggCommand implements TabExecutor {
             return true;
         }
 
-        EntityType type = CannonConfig.parseType(args[0]);
-        if (type == null || !EntityTypes.isAllowed(type, config)) {
+        ParsedProjectile parsed = parseProjectile(args[0], config);
+        if (parsed == null) {
+            Msg.error(player, "Недоступно.");
+            return true;
+        }
+        EntityType type = parsed.type();
+        SpawnMode spawnMode = parsed.mode();
+        if (!EntityTypes.isAllowed(type, config)) {
             Msg.error(player, "Недоступно.");
             return true;
         }
@@ -83,13 +89,14 @@ public final class EggCommand implements TabExecutor {
         current.setProjectile(type);
         current.setCount(count);
         current.setTarget(target.getUniqueId());
+        current.setMode(spawnMode);
 
         if (mode == MODE_ROD) {
             if (!player.hasPermission("egg.rod")) {
                 Msg.error(player, "Недоступно.");
                 return true;
             }
-            ItemStack rod = items.createRod(type, count, target.getUniqueId(), target.getName());
+            ItemStack rod = items.createRod(spawnMode, type, count, target.getUniqueId(), target.getName());
             var leftovers = player.getInventory().addItem(rod);
             for (ItemStack left : leftovers.values()) {
                 player.getWorld().dropItemNaturally(player.getLocation(), left);
@@ -98,7 +105,7 @@ public final class EggCommand implements TabExecutor {
             return true;
         }
 
-        service.fire(player, target, type, count);
+        service.fire(player, target, type, count, spawnMode);
         return true;
     }
 
@@ -140,7 +147,35 @@ public final class EggCommand implements TabExecutor {
     }
 
     private static void usage(CommandSender sender, String label) {
-        Msg.info(sender, "Использование: /" + label + " <снаряд> <кол-во> <цель> <fire|rod>");
+        Msg.info(sender, "Использование: /" + label
+                + " <снаряд|orbital|stab> <кол-во> <цель> <fire|rod>");
+    }
+
+    private static ParsedProjectile parseProjectile(String raw, CannonConfig config) {
+        String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
+        if (value.isEmpty()) {
+            return null;
+        }
+
+        int split = value.indexOf(':');
+        if (split > 0) {
+            SpawnMode mode = SpawnMode.parse(value.substring(0, split));
+            if (mode != SpawnMode.NORMAL) {
+                EntityType type = CannonConfig.parseType(value.substring(split + 1));
+                return type == null ? null : new ParsedProjectile(mode, type);
+            }
+        }
+
+        SpawnMode bare = SpawnMode.parse(value);
+        if (bare != SpawnMode.NORMAL) {
+            return new ParsedProjectile(bare, config.projectileFor(bare));
+        }
+
+        EntityType type = CannonConfig.parseType(raw);
+        return type == null ? null : new ParsedProjectile(SpawnMode.NORMAL, type);
+    }
+
+    private record ParsedProjectile(SpawnMode mode, EntityType type) {
     }
 
     @Override

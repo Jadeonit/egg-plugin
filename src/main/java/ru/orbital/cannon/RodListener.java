@@ -58,6 +58,7 @@ public final class RodListener implements Listener {
         EntityType type = items.readType(item);
         Integer count = items.readCount(item);
         UUID targetId = items.readTarget(item);
+        SpawnMode mode = items.readMode(item);
 
         if (type == null) {
             Msg.error(player, "Недоступно.");
@@ -69,6 +70,9 @@ public final class RodListener implements Listener {
         if (targetId == null) {
             targetId = current.getTarget();
         }
+        if (mode == SpawnMode.NORMAL && !items.hasMode(item)) {
+            mode = current.getMode();
+        }
 
         Player target = targetId == null ? null : Bukkit.getPlayer(targetId);
         if (target == null) {
@@ -76,7 +80,7 @@ public final class RodListener implements Listener {
             return;
         }
 
-        service.fire(player, target, type, count);
+        service.fire(player, target, type, count, mode);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

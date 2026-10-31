@@ -19,6 +19,22 @@ spawn:
   falling-block-material: SAND
   disable-ai: false
 
+modes:
+  orbital:
+    projectile: TNT
+    height: 300
+    height-jitter: 6
+    radius: 8
+    velocity: -2.5
+    tnt-fuse-extra: 10
+  stab:
+    projectile: TNT
+    height: 300
+    height-jitter: 4
+    radius: 6
+    velocity: -8.0
+    tnt-fuse-extra: 2
+
 mobs:
   slow-falling: true
   slow-falling-seconds: 30

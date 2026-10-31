@@ -22,15 +22,17 @@ public final class CannonItems {
     private final NamespacedKey typeKey;
     private final NamespacedKey countKey;
     private final NamespacedKey targetKey;
+    private final NamespacedKey modeKey;
 
     public CannonItems(OrbitalCannonPlugin plugin, CannonConfig config) {
         this.config = config;
         this.typeKey = new NamespacedKey(plugin, "rod_type");
         this.countKey = new NamespacedKey(plugin, "rod_count");
         this.targetKey = new NamespacedKey(plugin, "rod_target");
+        this.modeKey = new NamespacedKey(plugin, "rod_mode");
     }
 
-    public ItemStack createRod(EntityType type, int count, UUID targetId, String targetName) {
+    public ItemStack createRod(SpawnMode mode, EntityType type, int count, UUID targetId, String targetName) {
         ItemStack item = new ItemStack(Material.FISHING_ROD);
         ItemMeta meta = item.getItemMeta();
         if (meta == null) {
@@ -44,6 +46,11 @@ public final class CannonItems {
 
         if (config.rodLore()) {
             List<Component> lore = new ArrayList<>();
+            if (mode != SpawnMode.NORMAL) {
+                lore.add(Component.text("Режим: ", NamedTextColor.DARK_GRAY)
+                        .append(Component.text(mode.name().toLowerCase(), NamedTextColor.WHITE))
+                        .decoration(TextDecoration.ITALIC, false));
+            }
             lore.add(Component.text("Снаряд: ", NamedTextColor.DARK_GRAY)
                     .append(Component.text(type.name().toLowerCase(), NamedTextColor.WHITE))
                     .decoration(TextDecoration.ITALIC, false));
@@ -60,6 +67,7 @@ public final class CannonItems {
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
         pdc.set(typeKey, PersistentDataType.STRING, type.name());
         pdc.set(countKey, PersistentDataType.INTEGER, count);
+        pdc.set(modeKey, PersistentDataType.STRING, mode.name());
         if (targetId != null) {
             pdc.set(targetKey, PersistentDataType.STRING, targetId.toString());
         }
@@ -94,6 +102,23 @@ public final class CannonItems {
             return null;
         }
         return meta.getPersistentDataContainer().get(countKey, PersistentDataType.INTEGER);
+    }
+
+    public SpawnMode readMode(ItemStack item) {
+        ItemMeta meta = item == null ? null : item.getItemMeta();
+        if (meta == null) {
+            return SpawnMode.NORMAL;
+        }
+        String raw = meta.getPersistentDataContainer().get(modeKey, PersistentDataType.STRING);
+        return SpawnMode.parse(raw);
+    }
+
+    public boolean hasMode(ItemStack item) {
+        ItemMeta meta = item == null ? null : item.getItemMeta();
+        if (meta == null) {
+            return false;
+        }
+        return meta.getPersistentDataContainer().has(modeKey, PersistentDataType.STRING);
     }
 
     public UUID readTarget(ItemStack item) {

@@ -2,7 +2,6 @@ package ru.orbital.cannon;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -19,6 +18,7 @@ import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -41,11 +41,15 @@ public final class CannonService {
     }
 
     public boolean fire(Player shooter, Player target, EntityType type, int rawCount) {
+        return fire(shooter, target, type, rawCount, SpawnMode.NORMAL);
+    }
+
+    public boolean fire(Player shooter, Player target, EntityType type, int rawCount, SpawnMode mode) {
         if (shooter == null) {
             return false;
         }
         if (target == null || !target.isOnline()) {
-            Msg.error(shooter, "Цель не выбрана или не в сети. /egg <снаряд> <кол-во> <цель> fire");
+            Msg.error(shooter, "Цель не выбрана или не в сети. /egg <снаряд|orbital|stab> <кол-во> <цель> fire");
             return false;
         }
         if (!EntityTypes.isAllowed(type, config)) {
@@ -81,9 +85,13 @@ public final class CannonService {
             return false;
         }
 
-        new SalvoTask(world, center, type, total).runTaskTimer(plugin, 0L, 1L);
+        new SalvoTask(world, center, type, total, mode).runTaskTimer(plugin, 0L, 1L);
 
-        Msg.ok(shooter, "Залп: " + total + " × " + type.name().toLowerCase() + " по " + target.getName());
+        String modeTag = mode == SpawnMode.NORMAL
+                ? ""
+                : " [" + mode.name().toLowerCase(Locale.ROOT) + "]";
+        Msg.ok(shooter, "Залп: " + total + " × " + type.name().toLowerCase()
+                + modeTag + " по " + target.getName());
         if (config.launchSound()) {
             world.playSound(center, "entity.firework_rocket.launch", 1.0f, 0.6f);
         }
@@ -149,15 +157,17 @@ public final class CannonService {
         private final Location center;
         private final EntityType type;
         private final int total;
+        private final SpawnMode mode;
         private final ThreadLocalRandom random = ThreadLocalRandom.current();
 
         private int spawned;
 
-        private SalvoTask(World world, Location center, EntityType type, int total) {
+        private SalvoTask(World world, Location center, EntityType type, int total, SpawnMode mode) {
             this.world = world;
             this.center = center;
             this.type = type;
             this.total = total;
+            this.mode = mode;
         }
 
         @Override
@@ -177,10 +187,15 @@ public final class CannonService {
 
         private void spawnOne() {
             double angle = random.nextDouble() * Math.PI * 2.0;
-            double distance = Math.sqrt(random.nextDouble()) * config.radius();
+            double distance = Math.sqrt(random.nextDouble()) * config.modeRadius(mode);
             double x = center.getX() + Math.cos(angle) * distance;
             double z = center.getZ() + Math.sin(angle) * distance;
-            double y = center.getY() + config.height() + random.nextDouble() * config.heightJitter();
+
+            double maxY = world.getMaxHeight() - 2.0;
+            double y = center.getY() + config.modeHeight(mode)
+                    + random.nextDouble() * config.modeJitter(mode);
+            y = Math.min(y, maxY);
+            y = Math.max(y, Math.min(center.getY() + 5.0, maxY));
 
             Location location = new Location(world, x, y, z);
             Entity entity;
@@ -197,11 +212,16 @@ public final class CannonService {
                 return;
             }
 
+            double vertical = config.modeVelocity(mode);
             if (entity instanceof TNTPrimed tnt) {
                 double fallDistance = Math.max(1.0, y - center.getY());
-                double speed = Math.abs(config.velocity());
-                int fallTicks = speed > 0.05 ? (int) Math.ceil(fallDistance / speed) : 100;
-                tnt.setFuseTicks(Math.max(10, fallTicks + config.tntFuseExtra()));
+                int fallTicks = mode == SpawnMode.STAB
+                        ? estimateNoGravityTicks(fallDistance, Math.abs(vertical))
+                        : estimateFallTicks(fallDistance, Math.abs(vertical));
+                tnt.setFuseTicks(Math.max(10, fallTicks + config.modeFuseExtra(mode)));
+                if (mode == SpawnMode.STAB) {
+                    tnt.setGravity(false);
+                }
             }
 
             if (config.disableAi() && entity instanceof Mob mob) {
@@ -211,14 +231,16 @@ public final class CannonService {
             entity.setPersistent(false);
             entity.addScoreboardTag(TAG);
 
-            Vector velocity = new Vector(0.0, config.velocity(), 0.0);
+            Vector velocity = new Vector(0.0, vertical, 0.0);
             if (entity instanceof LivingEntity living) {
                 living.setFallDistance(0.0f);
-                if (config.mobSlowFalling()) {
+                if (mode != SpawnMode.STAB && config.mobSlowFalling()) {
                     living.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING,
                             config.mobSlowFallingSeconds() * 20, 0, true, false, false));
                 }
-                velocity = new Vector(0.0, config.mobFallSpeed(), 0.0);
+                if (mode != SpawnMode.STAB) {
+                    velocity = new Vector(0.0, config.mobFallSpeed(), 0.0);
+                }
             }
             entity.setVelocity(velocity);
 
@@ -239,5 +261,29 @@ public final class CannonService {
             }
             return world.spawnEntity(location, type);
         }
+    }
+
+    private static int estimateFallTicks(double distance, double initialSpeed) {
+        double y = 0.0;
+        double velocity = -Math.abs(initialSpeed);
+        int ticks = 0;
+        while (y > -distance && ticks < 2000) {
+            velocity = (velocity - 0.04) * 0.98;
+            y += velocity;
+            ticks++;
+        }
+        return ticks;
+    }
+
+    private static int estimateNoGravityTicks(double distance, double initialSpeed) {
+        double y = 0.0;
+        double velocity = Math.abs(initialSpeed);
+        int ticks = 0;
+        while (y < distance && ticks < 2000) {
+            y += velocity;
+            velocity *= 0.98;
+            ticks++;
+        }
+        return ticks;
     }
 }

@@ -38,6 +38,20 @@ public final class CannonConfig {
     private int mobSlowFallingSeconds = 30;
     private double mobFallSpeed = -0.3;
 
+    private EntityType orbitalProjectile = EntityType.TNT;
+    private double orbitalHeight = 300.0;
+    private double orbitalJitter = 6.0;
+    private double orbitalRadius = 8.0;
+    private double orbitalVelocity = -2.5;
+    private int orbitalFuseExtra = 10;
+
+    private EntityType stabProjectile = EntityType.TNT;
+    private double stabHeight = 300.0;
+    private double stabJitter = 4.0;
+    private double stabRadius = 6.0;
+    private double stabVelocity = -8.0;
+    private int stabFuseExtra = 2;
+
     public void reload(FileConfiguration c) {
         this.defaultProjectile = parseType(c.getString("defaults.projectile", "TNT"));
         if (this.defaultProjectile == null) {
@@ -78,6 +92,26 @@ public final class CannonConfig {
         this.mobSlowFalling = c.getBoolean("mobs.slow-falling", true);
         this.mobSlowFallingSeconds = Math.max(1, c.getInt("mobs.slow-falling-seconds", 30));
         this.mobFallSpeed = c.getDouble("mobs.fall-speed", -0.3);
+
+        this.orbitalProjectile = parseType(c.getString("modes.orbital.projectile", "TNT"));
+        if (this.orbitalProjectile == null) {
+            this.orbitalProjectile = EntityType.TNT;
+        }
+        this.orbitalHeight = c.getDouble("modes.orbital.height", 300.0);
+        this.orbitalJitter = Math.max(0.0, c.getDouble("modes.orbital.height-jitter", 6.0));
+        this.orbitalRadius = Math.max(0.0, c.getDouble("modes.orbital.radius", 8.0));
+        this.orbitalVelocity = c.getDouble("modes.orbital.velocity", -2.5);
+        this.orbitalFuseExtra = Math.max(0, c.getInt("modes.orbital.tnt-fuse-extra", 10));
+
+        this.stabProjectile = parseType(c.getString("modes.stab.projectile", "TNT"));
+        if (this.stabProjectile == null) {
+            this.stabProjectile = EntityType.TNT;
+        }
+        this.stabHeight = c.getDouble("modes.stab.height", 300.0);
+        this.stabJitter = Math.max(0.0, c.getDouble("modes.stab.height-jitter", 4.0));
+        this.stabRadius = Math.max(0.0, c.getDouble("modes.stab.radius", 6.0));
+        this.stabVelocity = c.getDouble("modes.stab.velocity", -8.0);
+        this.stabFuseExtra = Math.max(0, c.getInt("modes.stab.tnt-fuse-extra", 2));
     }
 
     public static EntityType parseType(String raw) {
@@ -174,5 +208,53 @@ public final class CannonConfig {
 
     public double mobFallSpeed() {
         return mobFallSpeed;
+    }
+
+    public EntityType projectileFor(SpawnMode mode) {
+        return switch (mode) {
+            case ORBITAL -> orbitalProjectile;
+            case STAB -> stabProjectile;
+            default -> defaultProjectile;
+        };
+    }
+
+    public double modeHeight(SpawnMode mode) {
+        return switch (mode) {
+            case ORBITAL -> orbitalHeight;
+            case STAB -> stabHeight;
+            default -> height;
+        };
+    }
+
+    public double modeJitter(SpawnMode mode) {
+        return switch (mode) {
+            case ORBITAL -> orbitalJitter;
+            case STAB -> stabJitter;
+            default -> heightJitter;
+        };
+    }
+
+    public double modeRadius(SpawnMode mode) {
+        return switch (mode) {
+            case ORBITAL -> orbitalRadius;
+            case STAB -> stabRadius;
+            default -> radius;
+        };
+    }
+
+    public double modeVelocity(SpawnMode mode) {
+        return switch (mode) {
+            case ORBITAL -> orbitalVelocity;
+            case STAB -> stabVelocity;
+            default -> velocity;
+        };
+    }
+
+    public int modeFuseExtra(SpawnMode mode) {
+        return switch (mode) {
+            case ORBITAL -> orbitalFuseExtra;
+            case STAB -> stabFuseExtra;
+            default -> tntFuseExtra;
+        };
     }
 }
